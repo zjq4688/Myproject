@@ -1,0 +1,33 @@
+import re
+import requests
+
+#按名字获取POI
+def main():
+    count = 1
+    path1 = "http://restapi.amap.com/v3/place/text?key=8325164e247e15eea68b59e89200988b&keywords="
+    path2=  "&city="
+    headers = {
+        "User-Agent": r"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.140 Safari/537.36 Edge/18.17763"
+    }
+    with open(r'C:\Users\admin\Desktop\data.txt',encoding='utf-8')as f:
+        with open(r'C:\Users\admin\Desktop\city_poiadd.txt','w',encoding='utf-8')as f_w:
+            for i in f:
+                i = i.split(',')
+                #print(i)
+                path_i = path1 + i[1]+i[2]+'政府'+path2+i[3]
+                #print(path_i)
+                res = requests.get(path_i, headers=headers)
+                p = re.findall('"location":"(.*?)","tel"', res.text)
+                #p_code=re.findall('"adcode":"(.*?)",',res.text)
+                #print(p[0])
+                #print(p_code)
+                #print(str(count*100/2882)+'%')
+                print('%.2f'%(count*100/2882),'% ')
+                if p :
+                    f_w.write(p[0] + '\n')
+                else:
+                    f_w.write('no data......'+'\n')
+                count += 1
+
+if __name__ == '__main__':
+    main()
