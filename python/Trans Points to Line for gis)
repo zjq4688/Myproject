@@ -1,0 +1,53 @@
+import re
+#线数量统计
+count=1
+#掌行通数据转为gis线串数据
+
+#掌行通数据
+with open(r'C:/Users/admin/Desktop/1112/zuduan.txt','r',encoding='UTF-8') as f_r:
+    #argis线数据
+    with open(r'C:/Users/admin/Desktop/1112/Linezu.txt', 'w') as f_gis:
+        f_gis.write("Polyline"+'\n')
+        for i in f_r:
+            #提取每条消息的id和点位串信息 数组
+            print(i)
+            l_line=re.findall('"lnglat":"(.*?) "',i)
+            l_line_i=l_line[0]
+            #点位串按照；分割
+            fs = l_line_i.split(';')
+            print(fs)
+            num=1
+            f_gis.write(str(count) +" 0"+ '\n')
+            for p in fs:
+                #去除空数据
+                if not p:
+                    continue
+                kkk=re.split('[,]',p)
+                xi=kkk[0]
+                yi=kkk[1]
+                f_gis.write(str(num)+' '+xi+' '+yi+'\n')
+                num+=1
+
+            count+=1
+        f_gis.write("END" + '\n')
+#线条数
+print(count)
+
+#获取对应线的相关数据（msgId、time、desc等）
+name_id=1
+#掌形通数据
+with open(r'C:/Users/admin/Desktop/1112/zuduan.txt','r',encoding='UTF-8') as f_r:
+    #对应线描述数据
+    with open(r'C:/Users/admin/Desktop/1112/Line_namezu.txt', 'w') as f_name:
+        for i in f_r:
+            l_msgid=re.findall('"msgId":"(.*?)",',i)
+            l_desc=re.findall('"desc":"(.*?)"',i)
+            l_stime=re.findall('"stime":"(.*?)"',i)
+            l_etime=re.findall('"etime":"(.*?)"',i)
+            msgid_i=l_msgid[0]
+            desc_i=l_desc[0]
+            stime_i=l_stime[0]
+            etime_i=l_etime[0]
+            #排版输入格式
+            f_name.write(str(name_id)+","+msgid_i+","+desc_i+','+stime_i+','+etime_i+'\n')
+            name_id+=1
