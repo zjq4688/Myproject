@@ -1,0 +1,81 @@
+import requests
+import json
+import sys
+import time
+import re
+
+d_feizu={}
+d_zu={}
+
+#操作路径
+path=r'C:\Users\admin\Desktop\掌行通\test\\'
+#d_feizu字典读取
+with open(path+r'msgId_EVENTFZE.txt','a+',encoding='utf-8')as f_feizu:
+    for i in f_feizu:
+        if i:
+            d_feizu[i]=time.time()
+#d_zu字典读取
+with open(path+'msgId_EVENTF.txt','a+',encoding='utf-8')as f_zu:
+    for i in f_zu:
+        if i:
+            d_zu[i]=time.time()
+
+#versionInfo = response2.text
+#versionInfoPython = json.loads(versionInfo)
+#versionInfoPython = json.loads(response2.text)
+#print(versionInfoPython)
+#dataList = versionInfoPython.get('incident')
+
+
+while True:
+    # 非阻断
+    response1 = requests.get(
+        'http://18q2.palmgo.cn/portal/main.action?user=ZJXL_18Q2_INTER_EVENTFZE&password=7c4a8d09ca3762af61e59520943dc26494f8941b&citycode=1000&type=11&extension=')
+    # 阻断
+    response2 = requests.get(
+        'http://18q2.palmgo.cn/portal/main.action?user=ZJXL_18Q2_INTER_EVENT&password=7c4a8d09ca3762af61e59520943dc26494f8941b&citycode=1000&type=11&extension=')
+    dataList_feizu = json.loads(response1.text).get('incident')
+    dataList_zu = json.loads(response2.text).get('incident')
+
+    with open(path+'1121_feizu.txt','a',encoding='utf-8') as r:
+        with open(path+'msgId_EVENTFZE.txt','a',encoding='utf-8')as f:
+            for temp in dataList_feizu:
+                tempp=json.dumps(temp,ensure_ascii=False)
+                #print(tempp)
+                msgId=re.findall('"msgId": "(.*?)",',tempp)[0]
+                #print(msgId[0])
+                if msgId not in d_feizu:
+                    d_feizu[msgId] = time.time()
+                    r.write( tempp+'\n')
+                    f.write(msgId+'\n')
+                #print tempp
+               # r.write(json.dumps(temp,ensure_ascii=False))
+    print('非阻断事件爬取完成：',time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time())))
+    #print(d_feizu)
+    print('非阻断事件数量：',len(d_feizu))
+
+    with open(path+'1121_zu.txt','a',encoding='utf-8') as r:
+        with open(path+'msgId_EVENTF.txt','a',encoding='utf-8')as f:
+            for temp in dataList_zu:
+                tempp=json.dumps(temp,ensure_ascii=False)
+                #print(tempp)
+                msgId=re.findall('"msgId": "(.*?)",',tempp)[0]
+                #print(msgId[0])
+                if msgId not in d_zu:
+                    d_zu[msgId] = time.time()
+                    r.write( tempp+'\n')
+                    f.write(msgId+'\n')
+                #print tempp
+               # r.write(json.dumps(temp,ensure_ascii=False))
+    print('阻断事件爬取完成：',time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time())))
+    #print(d_zu)
+    print('阻断事件数量：',len(d_zu))
+
+    time.sleep(300)
+# versionInfo 是接口返回的 json 格式数据
+
+# json.loads 将已编码的 JSON 字符串解码为 Python 对象
+
+
+
+
