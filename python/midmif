@@ -1,0 +1,115 @@
+#结果产生    resul表 ：mid、mif组合表    list表：城市名对应点数
+l_mid=[]
+l_point=[]
+l_Pgroup=[]
+l_num=[]
+num_region=0
+#写入数据行数 应与点数相等
+line=0
+#点组数
+num_count=0
+#点数
+sum=0
+#输入操作路径，放入mid、mif数据
+path=r'C:\Users\admin\Desktop\test\市级别\\'
+#第一遍遍历mif数据，获得所有点、多边形数、每个字段对应多边形数目、
+with open(path+'merge_city.mif','r')as f_r:
+    with open(path+'point.txt','w',encoding='utf-8')as f_w:
+        for i in f_r:
+            i=i.strip('\r\n')
+            xy=i.split(' ')
+
+            #找到点数统计标志
+            if xy[0].isdigit()and len(xy)==1:
+                #print(xy[0])
+                num_count+=1
+                l_num.append(xy[0])
+                sum+=int(xy[0])
+
+            #REGION标记
+            if xy[0]=='REGION':
+                l_Pgroup.append(xy[1])
+                num_region+=1
+
+            #坐标点
+            if len(xy)==2 and not xy[0].isalpha():
+                #print(xy)
+                f_w.write(xy[0]+' '+xy[1]+'\n')
+                line+=1
+
+
+print('总点数： ',sum) #点数
+print('点组数量： ',num_count)
+print('区域数量：',num_region)
+print('写入行数： ',line)
+#point文件读入l_point列表中
+with open(path+'point.txt','r')as f:
+    for i in f:
+        i=i.strip('\n')
+        l_point.append(i)
+print(l_point)
+#print(len(l_point))
+#读取mid文件到l_mid列表中
+with open(path+'merge_city.mid','r')as f:
+    for i in f:
+        i=i.strip('\n')
+        l_mid.append(i)
+print(l_mid)
+
+#读入指针（result表）
+p=0
+p_num=0
+i=0
+j=0
+k=0
+#mif数据关联进result结果表中
+with open(path+'result.txt', 'w',encoding='utf-8')as f_w:
+    for i in range(0, len(l_Pgroup)):  # l_Pgroup[i]表示该区域的多边形数  即 RGION l_Pgroup[i]
+        new = l_mid[i]+','
+        for j in range(0, int(l_Pgroup[i])):
+            for k in range(0,int(l_num[p_num])):
+                new+=l_point[p+k]
+                new+='|'
+            new=new[:-1]
+            #每个区域内 多个多边形分割符设定
+            new+=';'
+            p+=int(l_num[p_num])
+            p_num+=1
+        # 此处完成一个区域的多边形定位添加
+        print(new[:-1])
+        f_w.write(new[:-1] + '\n')
+
+#读入指针（list表）
+ii=0
+jj=0
+pp=0
+#写入list表中，表示每个字段对应的多边形数、每个多边形点数量
+with open(path+'list.txt', 'w',encoding='utf-8')as f:
+    for ii in range(0, len(l_Pgroup)):  # l_Pgroup[i]表示该区域的多边形数  即 RGION l_Pgroup[i]
+        temp=l_mid[ii].split(',')
+        print(temp)
+        #写入内容编辑处
+        new = temp[0]+','+l_Pgroup[ii]
+        for jj in range(0, int(l_Pgroup[ii])):
+            new+=','+l_num[pp+jj]
+        f.write(new+'\n')
+        pp+=int(l_Pgroup[ii])
+
+#输出检验部分 可选
+print('p : ',p)
+print('i : ', i)
+print('j : ', j)
+print('k : ', k)
+print('ii : ', ii)
+print('jj : ', jj)
+print('pp : ', pp)
+
+
+with open(path+'merge_city.mif','r',encoding='utf-8')as f_r:
+    with open(path+'mif.txt','w',encoding='utf-8')as f_w:
+        for i in f_r:
+            i=i.strip('\n')
+            print(i)
+            f_w.write(i+'\n')
+
+
