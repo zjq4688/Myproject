@@ -1,0 +1,156 @@
+import numpy as np
+import copy
+import math
+
+#数据类型 x、y
+class point(object):
+    def __init__(self,xx,yy):
+        self.x=xx
+        self.y=yy
+    def __str__(self):
+        return "(%s,%.4f)"%(self.x,self.y)
+
+####################################移动平均######################################################
+def MovingAverage(data,N):
+    if(not data):
+        print("nodata")
+        return None
+    l=len(data)
+    #传输数据这块不需要data已实现（直接copy）
+    out = copy.deepcopy(data)
+    if (l>N and N>=5 and N<=200):
+        for i in range(N-1,l):
+            out[i].y=GetSum(data,i,N)/N
+            #print("sum:",GetSum(data,i,N))
+        #out=out[:N-1]
+    return out
+
+#求和
+def GetSum(data,current_index,N):
+    if(data and current_index>=N-1 and current_index<len(data)):
+        sum=0.0
+        num=0
+        for i in range(current_index-N+1,current_index+1):
+            sum+=data[i].y
+            print("add",data[i].y)
+            num+=1
+        print("sum is ",sum)
+        #print("num is ", num)
+        return sum
+    else:
+        return 0
+
+####################################最小二乘#####################################################
+def Least_squ(data,m):
+    xx=[]
+    b=[]
+    out=[]
+    #这里插入数据还没有对数据空值进行判断
+    for i in range(0,len(data)):
+        xx.append(data[i].x)
+        b.append(data[i].y)
+    xx=np.array(xx)
+    b=np.array(b)
+    # A矩阵
+    mm = []
+    for i in range(m):  # 这里选的最高次为x^20的多项式
+        a = xx ** (i)
+        mm.append(a)
+    A = np.array(mm).T
+    AA=A.T.dat(A)
+    w=np.linalg.inv(AA).dot(A.T).dot(b)
+    yy=A.dot(w)
+
+    for i in range(0,len(data)):
+        out.append(point(xx[i],yy[i]))
+
+    return out
+
+####################################求速度######################################################
+def get_v(d0):
+    #速度结果列表
+    vv=[]
+    #深拷贝（目的获取x坐标，time）
+    vv = copy.deepcopy(d0)
+    t_h=60*60*1000
+    t_d=t_h*24
+
+    flag=None
+    for i in range(len(vv)-1,0-1):
+        for j in range(i,0-1):
+            flag=None
+            if(vv[i].x-vv[j].x>=t_d):
+                #计算速度
+                vv[i].y=(vv[i].y-vv[j].y)/(vv[i].x-vv[j].x/t_d)
+                flag=True
+                break
+        if(not flag):
+            vv[i].y=None
+    return vv
+
+####################################速度增量######################################################
+def get_increment(vv):
+    out=[]
+    if(vv):
+        for i in range(1,len(vv)):
+            if(vv[i].y and vv[i-1].y and vv[i].y-vv[i-1].y):
+                out.append(point(vv[i].x,vv[i].y-vv[i-1].y))
+    return out
+
+####################################加速度######################################################
+def get_a(vv):
+    aa=[]
+    aa=copy.deepcopy(vv)
+    t_h = 60 * 60 * 1000
+    t_d = t_h * 24
+
+    flag = None
+    for i in range(len(aa) - 1, 0-1):
+        for j in range(i, 0-1):
+            flag = None
+            if (vv[i].y and vv[j].y and (aa[i].x-aa[j].x)>= t_d):
+                # 计算加速度
+                aa[i].y = (vv[i].y - vv[j].y) / (vv[i].x - vv[j].x / t_d)
+                flag = True
+                break
+        if (not flag):
+            aa[i].y = None
+    return aa
+
+####################################切线角######################################################
+def get_qxj(s,interval):
+    interval=interval or 1*60*60*1000
+    t_h = 1*60 * 60 * 1000
+    t_d = 24*60*60*1000
+
+    v=get_v(s)
+    #求等速变形阶段的位移速率。通过等速变形阶段各时间段的变形速率作算术平均获得
+    v_avg=[]
+    v_avg=copy.deepcopy(v)
+
+    cnt=0
+    sum=0
+    for i in range(0,len(v_avg)):
+        if(i>0 and v_avg[i].y):
+            sum=0
+            cnt=0
+            for j in range(0,i+1):
+                if(v_avg[j].y):
+                    sum+=v_avg[j].y
+                    cnt+=1
+            v_avg[i].y=sum/cnt
+
+    #求T
+    T=[]
+    for i in range(0,len(v_avg)):
+        if(v[i].y and v_avg[i].y and(v[i].y/v_avg[i].y)):
+            T.append(point(v_avg[i].x,v[i].y/v_avg[i].y))
+
+    T_v=get_v((T))
+    qxj=[]
+    temp=0
+    for i in range(0,len(T_v)):
+        temp=math.atan(T_v[i].y*180/math.pi)
+        qxj.append(point(T_v[i].x,temp))
+
+    return qxj
